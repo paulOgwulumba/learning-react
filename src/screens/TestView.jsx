@@ -1,5 +1,3 @@
-
-
 export function TestView(){
   return(
     <div className="section">
