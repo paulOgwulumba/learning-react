@@ -1,7 +1,7 @@
 import "./App.css";
 import { loadStdlib } from "@reach-sh/stdlib";
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from "@reach-sh/stdlib";
-import * as backend from "./reach/build/index.main.mjs";
+import * as backend from "./build/index.main.mjs";
 import { useState } from "react";
 import { views, Loader } from "./utils/";
 import {

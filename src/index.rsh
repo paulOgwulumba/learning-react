@@ -28,12 +28,12 @@ const Player = {
 };
 
 export const main = Reach.App(() => {
-  const Alice = Participant("Alice", {
+  const Alice = Participant("Deployer", {
     ...Player,
     wager: UInt,
     deadline: UInt,
   });
-  const Bob = Participant("Bob", {
+  const Bob = Participant("Attacher", {
     ...Player,
     acceptWager: Fun([UInt], Null),
   });
@@ -63,8 +63,6 @@ export const main = Reach.App(() => {
     closeTo(Alice, informTimeout)
   );
 
-  // invariant(balance() == 2 * wager && isOutcome(outcome));
-
   commit();
 
   Alice.only(() => {
@@ -72,6 +70,8 @@ export const main = Reach.App(() => {
     const [_commitAlice, _saltAlice] = makeCommitment(interact, _aliceCard);
     const commitAlice = declassify(_commitAlice);
   });
+
+  commit();
 
   Alice.publish(commitAlice).timeout(relativeTime(deadline), () =>
     closeTo(Bob, informTimeout)
