@@ -1,0 +1,48 @@
+Who is involved?
+Blackjack is played by two players (Alice - the creator and Bob - who joins the game])
+
+What info do they know about at the start.
+Alice knows the wager and timeout
+
+What info is discovered during the game
+At the end of all the moves, both players will know what they played.
+
+How is the fund paid?
+At the beginning bob agrees to alice's wager and they both pay the wager. The winner is paid both wagers and if the game is a draw, they split the wager equally.
+
+//
+
+DATA DEFINITION
+
+What function / values does
+1. Alice need to start the game
+2. Bob need to join the game
+3. 2 players need to play and know opponents moves
+4. 2 players need to inform the contract of what they played and think their opponent played.
+
+
+Note: 
+
+When a player starts off knowing something = interact object.
+When a player learns something = argument to a function.
+When a player provides something = result of a function.
+
+// 
+
+COMMUNICATION CONSTRUCTION
+
+1. Alice sets the wager and deadline and deploys the contract.
+2. Bob accepts the wager and joins the game.
+3. As long as each player have less than 21 points in their outcome:
+    a. Alice plays her cards.
+    b. Bob plays his cards.
+    c. Alice informs the contract of her cards.
+    d. Bob informs the contract of his cards.
+    e. Alice informs the contract of the number of pieces she has and the number of pieces Bob has according to her calculation.
+    f. The contract calculates the outcome of this round by checking:
+        i. If Alice === Bob = Draw
+        ii. If Alice < 21 && Bob < 21 && Alice > Bob = Alice wins
+        iii. If Alice < 21 && Bob < 21 && Alice < Bob = Bob wins
+        v. If Alice > 21 && Bob < 21 = Bob wins
+        vi. If Alice < 21 && Bob > 21 = Alice wins
+
