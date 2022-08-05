@@ -211,7 +211,34 @@ const drop = () => {
 }
   return (
     <div className="App">
-        <Intro 
+      <div className="top">
+        <h1>Reach React Boilerplate</h1>
+      </div>
+      <header className="App-header">
+        {view === views.CONNECT_ACCOUNT && (
+          <ConnectAccount connect={reachFunctions.connect} />
+        )}
+
+        {view === views.DEPLOY_OR_ATTACH && (
+          <SelectRole
+            deploy={reachFunctions.deploy}
+            attach={() => setView(views.PASTE_CONTRACT_INFO)}
+          />
+        )}
+
+        {(view === views.DEPLOYING || view === views.ATTACHING) && <Loader />}
+
+        {view === views.PASTE_CONTRACT_INFO && (
+          <PasteContractInfo attach={reachFunctions.attach} />
+        )}
+
+        {view === views.WAIT_FOR_ATTACHER && (
+          <WaitForAttacher info={contractInfo} />
+        )}
+
+        {view === views.TEST_VIEW && <TestView />}
+      </header>
+      <Intro 
       display = {toggleDisplay}
       setDisplay = {setToggleDisplay}
       setPlayer = {setPlayer}
@@ -257,6 +284,7 @@ const drop = () => {
      </div>
     
       </section>
+    
     </div>
   );
 }
