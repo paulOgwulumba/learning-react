@@ -1,7 +1,7 @@
 "reach 0.1";
 
 // Enum value that we use to represent the current outcome of the game
-const [isOutcome, B_WINS, DRAW, A_WINS, CONTINUE] = makeEnum(4);
+const [isOutcome, B_WINS, DRAW, A_WINS] = makeEnum(3);
 
 const winner = (cardAlice, cardBob) => {
   if (cardAlice === cardBob) {
@@ -11,33 +11,29 @@ const winner = (cardAlice, cardBob) => {
     (cardAlice < 21 && cardBob > 21)
   ) {
     return A_WINS;
-  } else if (
-    (cardAlice < 21 && cardBob < 21 && cardAlice < cardBob) ||
-    (cardAlice > 21 && cardBob < 21)
-  ) {
-    return B_WINS;
-  } else return CONTINUE;
+  } else return B_WINS;
 };
 
 const Player = {
   ...hasRandom,
-  dealCard: Fun([], UInt),
+  dealCard: Fun([], Array(UInt, 5)),
   seeOutcome: Fun([UInt], Null),
-  seeCards: Fun([UInt, UInt], Null),
   informTimeout: Fun([], Null),
 };
 
 export const main = Reach.App(() => {
-  const Alice = Participant("Deployer", {
+  const Alice = Participant("Alice", {
     ...Player,
     wager: UInt,
+    seeAliceCard: Fun([], Array(UInt, 5)),
     deadline: UInt,
+    waitingForAttacher: Fun([], Null),
   });
-  const Bob = Participant("Attacher", {
+  const Bob = Participant("Bob", {
     ...Player,
+    seeBobCard: Fun([], Array(UInt, 5)),
     acceptWager: Fun([UInt], Null),
   });
-
   init();
 
   const informTimeout = () => {
@@ -70,8 +66,6 @@ export const main = Reach.App(() => {
     const [_commitAlice, _saltAlice] = makeCommitment(interact, _aliceCard);
     const commitAlice = declassify(_commitAlice);
   });
-
-  commit();
 
   Alice.publish(commitAlice).timeout(relativeTime(deadline), () =>
     closeTo(Bob, informTimeout)

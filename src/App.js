@@ -1,36 +1,55 @@
-import "./App.css";
+import * as backend from "./build/index.main.mjs";
 import { loadStdlib } from "@reach-sh/stdlib";
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from "@reach-sh/stdlib";
-import * as backend from "./build/index.main.mjs";
-import { createContext,useState } from "react";
+
+import "./App.css";
 import { views, Loader } from "./utils/";
+import { createContext, useState } from "react";
+
+//screens
 import {
   ConnectAccount,
   PasteContractInfo,
   SelectRole,
   TestView,
   WaitForAttacher,
-} from "./screens";
+} from "./screens/";
 
-import Header from './components/Header';
-import State from './components/State';
-import Board from './components/Board';
-import Button from './components/Button';
-import Card from './components/Card';
-import Intro from './components/Intro';
-import AttacherView from './views/AttacherView';
-import DeployerView from './views/DeployerView';
+//views
+import {
+  AttacherView,
+  SetWager,
+  Deploying,
+  DeployerView,
+  AcceptWager,
+  Timeout,
+  Attaching,
+} from "./views/";
+import { Header, State, Board, Button, Card, Intro } from "./components";
 
 const reach = loadStdlib("ALGO");
 reach.setWalletFallback(
   reach.walletFallback({ providerEnv: "TestNet", MyAlgoConnect })
 );
-const fmt = (x) => reach.formatCurrency(x, 4);
+const { standardUnit } = reach;
 
 function App() {
-  const [account, setAccount] = useState({});
   const [view, setView] = useState(views.CONNECT_ACCOUNT);
+  const [account, setAccount] = useState({});
+  const [resolver, setResolver] = useState();
   const [contractInfo, setContractInfo] = useState();
+  const [wager, setWager] = useState();
+  const [outcome, setOutcome] = useState();
+  const [toggleDisplay, setToggleDisplay] = useState(true);
+  const [player, setPlayer] = useState("");
+  const [deployerCard, setDeployerCard] = useState([]);
+  const [attacherCard, setAttacherCard] = useState([]);
+  const [deployerScore, setDeployerScore] = useState(0);
+  const [attacherScore, setattacherScore] = useState(0);
+  const [text, setText] = useState("let's Play");
+  const [isHit, setIsHit] = useState(false);
+  const [isDrop, setIsDrop] = useState(false);
+  const UserContext = createContext();
 
   const reachFunctions = {
     connect: async (secret, mnemonic = false) => {
@@ -51,168 +70,179 @@ function App() {
 
     setAsDeployer: (deployer = true) => {
       if (deployer) {
-        setView(views.SET_TOKEN_INFO);
+        setView(views.SET_WAGER);
       } else {
         setView(views.PASTE_CONTRACT_INFO);
       }
     },
 
-    deploy: async () => {
+    deploy: async (wager) => {
       const contract = account.contract(backend);
-      backend.Deployer(contract, Deployer);
+      const deadline = { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector];
+      Alice.wager = reach.parseCurrency(wager);
+      Alice.deadline = deadline;
+      backend.Alice(contract, Alice);
       setView(views.DEPLOYING);
-      const ctcInfo = JSON.stringify(await contract.getInfo(), null, 2);
-      setContractInfo(ctcInfo);
+      setContractInfo(JSON.stringify(await contract.getInfo(), null, 2));
       setView(views.WAIT_FOR_ATTACHER);
     },
 
     attach: (contractInfo) => {
       const contract = account.contract(backend, JSON.parse(contractInfo));
-      backend.Attacher(contract, Attacher);
-      setView(views.ATTACHING);
+      backend.Bob(contract, Bob);
     },
   };
 
-  //Participant Objects
-  const Common = {
-    random: () => reach.hasRandom.random(),
-
-    test: () => setView(views.TEST_VIEW),
-  };
-
-  const Deployer = {
-    ...Common,
-  };
-
-  const Attacher = {
-    ...Common,
-  };
-
-  const [toggleDisplay, setToggleDisplay] = useState(true);
-  const [player, setPlayer] = useState('')
-  const [deployerCard, setDeployerCard] = useState([]);
-  const [attacherCard, setAttacherCard] = useState([]);
-  const [deployerScore, setDeployerScore] = useState(0)
-  const [attacherScore, setattacherScore] = useState(0)
-  const [text, setText] = useState("let's Play");
-  const [isHit, setIsHit] = useState(false);
-  const [isDrop, setIsDrop] = useState(false)
-  const UserContext = createContext();
   let blackJackGame = {
-    "deployer": {
-      "scorespan": deployerScore,
-      "score": deployerScore,
+    deployer: {
+      scorespan: deployerScore,
+      score: deployerScore,
     },
-    "attacher": {
-      "scorespan": attacherScore,
-      "score": attacherScore,
+    attacher: {
+      scorespan: attacherScore,
+      score: attacherScore,
     },
-    "cards": ['2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10',
-      'K',
-      'Q',
-      'J',
-      'A'],
-    "cardsMap": {
-      '2': 2,
-      '3': 3,
-      '4': 4,
-      '5': 5,
-      '6': 6,
-      '7': 7,
-      '8': 8,
-      '9': 9,
-      '10': 10,
-      'K': 10,
-      'J': 10,
-      'Q': 10,
-      'A': [1,
-        11]
+    cards: ["2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J", "A"],
+    cardsMap: {
+      2: 2,
+      3: 3,
+      4: 4,
+      5: 5,
+      6: 6,
+      7: 7,
+      8: 8,
+      9: 9,
+      10: 10,
+      K: 10,
+      J: 10,
+      Q: 10,
+      A: [1, 11],
     },
-    'IsHit':false,
-    'IsDrop':false,
   };
 
   // randomCards generator
-const randomCards = () => {
-  let randomIndex = Math.floor(Math.random() * 13)
-  return blackJackGame['cards'][randomIndex];
-  }
+  const randomCards = () => {
+    let randomIndex = Math.floor(Math.random() * 13);
+    return blackJackGame["cards"][randomIndex];
+  };
 
-  //Update Score 
+  //Update Score
   function updateScore(card, initialScore, activeScore) {
-    if (card === 'A') {
-      if (initialScore + blackJackGame['cardsMap'][card][1] > 21) {
-        activeScore(prevScore => prevScore + blackJackGame['cardsMap'][card][0])
-      } else if (initialScore + blackJackGame['cardsMap'][card][1] <= 21){
-        activeScore(prevScore => prevScore + blackJackGame['cardsMap'][card][1])
+    if (card === "A") {
+      if (initialScore + blackJackGame["cardsMap"][card][1] > 21) {
+        activeScore(
+          (prevScore) => prevScore + blackJackGame["cardsMap"][card][0]
+        );
+      } else if (initialScore + blackJackGame["cardsMap"][card][1] <= 21) {
+        activeScore(
+          (prevScore) => prevScore + blackJackGame["cardsMap"][card][1]
+        );
       }
     } else {
-     activeScore(prevScore => prevScore+blackJackGame['cardsMap'][card])
-     
+      activeScore((prevScore) => prevScore + blackJackGame["cardsMap"][card]);
     }
-    
-    }
+  }
 
- //Deployer function 
+  //Deployer function
   const deployHit = () => {
     if (deployerScore <= 21 && isDrop === false) {
       let card = randomCards();
-    setDeployerCard(prevCard => [...prevCard, <Card card= {card} />])
-    updateScore(card, deployerScore, setDeployerScore)
-    setIsHit(true)
+      setDeployerCard((prevCard) => [...prevCard, <Card card={card} />]);
+      updateScore(card, deployerScore, setDeployerScore);
+      setIsHit(true);
     }
-  }
-  
+  };
 
-//set deployer score logic
-if (deployerScore <= 21) {
-  blackJackGame['deployer']['scorespan'] = deployerScore
+  //set deployer score logic
+  if (deployerScore <= 21) {
+    blackJackGame["deployer"]["scorespan"] = deployerScore;
   } else {
-  blackJackGame['deployer']['scorespan'] = "Burst!"
+    blackJackGame["deployer"]["scorespan"] = "Burst!";
   }
 
-// Attacher function
+  // Attacher function
   const attacherHit = () => {
     if (attacherScore <= 21 && isDrop === false) {
       let card = randomCards();
-    setAttacherCard(prevCard => [...prevCard, <Card card= {card} />])
-    updateScore(card, attacherScore, setattacherScore)
-    setIsHit(true)
-    } 
-  }
+      setAttacherCard((prevCard) => [...prevCard, <Card card={card} />]);
+      updateScore(card, attacherScore, setattacherScore);
+      setIsHit(true);
+    }
+  };
 
-  // set attacher score logic 
-if (attacherScore <= 21) {
-  blackJackGame['attacher']['scorespan'] = attacherScore
+  // set attacher score logic
+  if (attacherScore <= 21) {
+    blackJackGame["attacher"]["scorespan"] = attacherScore;
   } else {
-  blackJackGame['attacher']['scorespan'] = "Burst!"
+    blackJackGame["attacher"]["scorespan"] = "Burst!";
   }
 
-//Drop function 
-const drop = () => {
-  if (isHit === true) {
-    player === 'Deployer' ? 
-  setText('Waiting for Attacher...') : 
-  setText('Waiting for Deployer...')
-  setTimeout(() => {
-    setText('Waiting For Result..')
-  }, 5000)
-  setIsDrop(true)
-  }
-  
-}
+  //Drop function
+  const drop = () => {
+    if (isHit === true) {
+      player === "Deployer"
+        ? setText("Waiting for Attacher...")
+        : setText("Waiting for Deployer...");
+      setTimeout(() => {
+        setText("Waiting For Result..");
+      }, 5000);
+      setIsDrop(true);
+    }
+  };
+
+  //Participant Objects
+  const Player = {
+    random: () => reach.hasRandom.random(),
+    test: () => setView(views.TEST_VIEW),
+
+    seeOutcome: (outcomeHex) => {
+      const outcome = parseInt(outcomeHex);
+      setOutcome(outcome);
+      setView(views.SEE_WINNER);
+    },
+
+    informTimeout: () => {
+      setView(views.TIME_OUT);
+    },
+  };
+  const Alice = {
+    ...Player,
+    wager: 0,
+    deadline: 0,
+    setWagerAndDeadline: (wager, deadline) => {
+      this.wager = wager;
+      this.deadline = deadline;
+    },
+    waitingForAttacher: () => {
+      setView(views.WAIT_FOR_ATTACHER);
+    },
+  };
+
+  const Bob = {
+    ...Player,
+    acceptWager: async (wager) => {
+      setView(views.ACCEPT_WAGER);
+      setWager(reach.formatCurrency(wager, 4));
+      return new Promise((resolve) => {
+        setResolver({
+          resolve: () => {
+            setView(views.ATTACHING);
+            resolve();
+          },
+        });
+      });
+    },
+  };
+
   return (
     <div className="App">
       <div className="top">
-        <h1>Reach React Boilerplate</h1>
+        <Header
+          text2="BlackJack"
+          span="Game"
+          spanClass="Intro__span"
+          class2="Intro__sub"
+        />
       </div>
       <header className="App-header">
         {view === views.CONNECT_ACCOUNT && (
@@ -221,70 +251,77 @@ const drop = () => {
 
         {view === views.DEPLOY_OR_ATTACH && (
           <SelectRole
-            deploy={reachFunctions.deploy}
+            deploy={reachFunctions.setAsDeployer}
             attach={() => setView(views.PASTE_CONTRACT_INFO)}
           />
         )}
 
-        {(view === views.DEPLOYING || view === views.ATTACHING) && <Loader />}
-
-        {view === views.PASTE_CONTRACT_INFO && (
-          <PasteContractInfo attach={reachFunctions.attach} />
+        {view === views.SET_WAGER && (
+          <SetWager deploy={reachFunctions.deploy} />
         )}
+
+        {view === views.DEPLOYING && <Deploying />}
 
         {view === views.WAIT_FOR_ATTACHER && (
           <WaitForAttacher info={contractInfo} />
         )}
 
-        {view === views.TEST_VIEW && <TestView />}
+        {view === views.PASTE_CONTRACT_INFO && (
+          <PasteContractInfo attach={reachFunctions.attach} />
+        )}
+
+        {view === views.ACCEPT_WAGER && (
+          <AcceptWager
+            wager={wager}
+            standardUnit={standardUnit}
+            accept={() => setView(views.DEPLOYER_BOARD)}
+            decline={() => setView(views.DEPLOY_OR_ATTACH)}
+          />
+        )}
+
+        {view === views.ATTACHING && <Attaching />}
+        {view === views.DEPLOYER_BOARD && (
+          <DeployerView
+            blackJackGame={blackJackGame}
+            deployerCard={deployerCard}
+            deployHit={deployHit}
+            drop={drop}
+          />
+        )}
       </header>
-      <Intro 
-      display = {toggleDisplay}
-      setDisplay = {setToggleDisplay}
-      setPlayer = {setPlayer}
-      />
-      <section className={toggleDisplay == true ? 'hide' : 'show'}>
-      <Header 
-        text2='BlackJack'
-        span = 'Game'
-        spanClass = 'Intro__span'
-        class2='Intro__sub'
+      <section className={toggleDisplay == true ? "hide" : "show"}>
+        <Header
+          text2="BlackJack"
+          span="Game"
+          spanClass="Intro__span"
+          class2="Intro__sub"
         />
-     <State 
-     text = {text}
-     />
-     <div className='App__board'>
-     {player === "Attacher" && <AttacherView 
-      blackJackGame = {blackJackGame}
-      attacherCard = {attacherCard}
-      />}
+        <State text={text} />
+        <div className="App__board">
+          {player === "Attacher" && (
+            <AttacherView
+              blackJackGame={blackJackGame}
+              attacherCard={attacherCard}
+            />
+          )}
 
-     {player === "Deployer" && <DeployerView 
-      blackJackGame = {blackJackGame}
-      deployerCard = {deployerCard}
-      />}
-     </div>
-     <div className='Button'>
-
-    {player === 'Deployer' &&  <Button 
-     text = "Hit"
-     type = "Button__hit"
-     click = {deployHit}
-     />}
-     {player === 'Attacher' &&  <Button 
-     text = "Hit"
-     type = "Button__hit"
-     click = {attacherHit}
-     /> }
-     <Button 
-     text="Stand"
-     type= "Button__stand"
-     click = {drop}
-     />
-     </div>
-    
+          {player === "Deployer" && (
+            <DeployerView
+              blackJackGame={blackJackGame}
+              deployerCard={deployerCard}
+            />
+          )}
+        </div>
+        <div className="Button">
+          {player === "Deployer" && (
+            <Button text="Hit" type="Button__hit" click={deployHit} />
+          )}
+          {player === "Attacher" && (
+            <Button text="Hit" type="Button__hit" click={attacherHit} />
+          )}
+          <Button text="Stand" type="Button__stand" click={drop} />
+        </div>
       </section>
-    
     </div>
   );
 }

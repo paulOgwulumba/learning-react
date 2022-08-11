@@ -1,23 +1,23 @@
 import React from "react";
-import Board from "../components/Board";
+import { Board } from "../components/Board";
 
-function AttacherView({ blackJackGame, attacherCard }) {
+export function AttacherView({ blackJackGame, attacherCard }) {
   return (
-    <div className="Attacher__board">
-      <Board
-        player="Attacher"
-        class="Attacher__class"
-        card={attacherCard}
-        score={blackJackGame["attacher"]["scorespan"]}
-      />
-      <Board
-        player="Deployer"
-        class="Dealer__Class"
-        // card={deployerCard}
-        // score = {blackJackGame['deployer']['scorespan']}
-      />
+    <div className="Attacher">
+      <div className="Attacher__board">
+        <Board
+          player="Attacher"
+          class="Attacher__class"
+          card={attacherCard}
+          score={blackJackGame["attacher"]["scorespan"]}
+        />
+        <Board
+          player="Deployer"
+          class="Dealer__Class"
+          // card={deployerCard}
+          // score = {blackJackGame['deployer']['scorespan']}
+        />
+      </div>
     </div>
   );
 }
-
-export default AttacherView;

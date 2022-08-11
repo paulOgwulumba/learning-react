@@ -1,20 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
- :root {
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+:root {
   --dark-yellow--color: rgb(158, 149, 14);
   --light-yellow-color: rgb(238, 228, 91);
   --white--color: #fff;
   --black--color: #222;
   --red-color: rgb(255, 11, 60);
   --green-clor: rgb(17, 92, 2);
- }
+}
 
- /* utility class  */
+/* utility class  */
 
- h1 {
+h1 {
   font-size: 2rem;
- }
- button {
-  padding: .7rem 1rem;
+}
+button {
+  padding: 0.7rem 1rem;
   border-radius: 5px;
   font-size: 1.5rem;
   outline: none;
@@ -25,18 +25,18 @@
   letter-spacing: 2px;
   margin: 10px;
   cursor: pointer;
-  transition: ease .5s;
+  transition: ease 0.5s;
 }
 
 /* App styling */
 
 .App {
   width: 90%;
-margin: 0 auto;
-text-align: center;
-margin-top: 2rem;
-font-family: 'Poppins', sans-serif;
-/* background-color: r; */
+  margin: 0 auto;
+  text-align: center;
+  margin-top: 2rem;
+  font-family: "Poppins", sans-serif;
+  /* background-color: r; */
 }
 
 .Attacher__board,
@@ -44,7 +44,7 @@ font-family: 'Poppins', sans-serif;
   display: flex;
   height: 60vh;
   width: 100%;
-  background-image: url('../public/images/bg.webp');
+  background-image: url("../public/images/bg.webp");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -64,7 +64,7 @@ font-family: 'Poppins', sans-serif;
   width: 100%;
   justify-content: center;
   align-items: center;
-  transition: .5s ease-in;
+  transition: 0.5s ease-in;
 }
 .Intro__Dealer:hover,
 .Intro__Attacher:hover {
@@ -125,7 +125,7 @@ font-family: 'Poppins', sans-serif;
 .span__white {
   color: var(--white--color);
 }
-.State__text{
+.State__text {
   color: var(--black--color);
   margin: 20px 0;
 }
@@ -136,10 +136,14 @@ font-family: 'Poppins', sans-serif;
   margin: 10px;
   background-color: #fff;
   border-radius: 5px;
- 
 }
 
 .Card img {
   height: 100%;
   object-fit: cover;
+}
+
+.Deployer {
+  display: flex;
+  flex-direction: column;
 }
