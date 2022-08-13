@@ -1,9 +1,13 @@
 import React from "react";
-import { Board, Button } from "../components/";
+import { memo } from "react";
+import { Board, Button, State } from "../components/";
 
-export function DeployerView({ blackJackGame, deployerCard, deployHit, drop }) {
+export function DeployerView({ blackJackGame, deployerCard, deployHit, drop, score }) {
   return (
     <div className="Deployer">
+     <State 
+         text= {score == 0 ? "You will be given two cards" : "Do you want to hit or stand"}
+         />
       <div className="Depolyer__Board">
         <Board
           player="Deployer"
