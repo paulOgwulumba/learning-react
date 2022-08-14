@@ -42,7 +42,7 @@ function App() {
   const [outcome, setOutcome] = useState("");
   const [toggleDisplay, setToggleDisplay] = useState(true);
   const [player, setPlayer] = useState("");
-  const [deployerCard, setDeployerCard] = useState([]);
+  const [deployerCard, setDeployerCard] = useState("");
   const [attacherCard, setAttacherCard] = useState([]);
   const [deployerScore, setDeployerScore] = useState(0);
   const [attacherScore, setattacherScore] = useState(0);
@@ -161,7 +161,7 @@ function App() {
         let card = randomCards();
         setDeployerCard((prevCard) => [...prevCard, <Card card={card} />]);
         updateScore(card, deployerScore, setDeployerScore);
-     
+     setDeployerCard((prevCard) => prevCard+= card)
       } 
     }, 3000);
     setTimeout(() => {
@@ -180,6 +180,7 @@ function App() {
       setDeployerCard((prevCard) => [...prevCard, <Card card={card} />]);
       updateScore(card, deployerScore, setDeployerScore);
       setIsHit(true);
+      setDeployerCard((prevCard) => prevCard+= card)
     }
     return [deployerScore, deployerCard]
   };
@@ -278,11 +279,15 @@ function App() {
             setView(views.ATTACHING);
             resolve();
           },
-        });
+        })
       });
     },
     
   };
+
+  // useEffect(()=>{
+  //     resolver.resolve(setView(views.DEPLOYER_BOARD));
+  // }, [ resolver])
 
   const OUTCOME = ['Alice Wins!!!', 'Draw !!!', 'Bob Wins!!!']
   return (
@@ -325,7 +330,8 @@ function App() {
           <AcceptWager
             wager={wager}
             standardUnit={standardUnit}
-            accept={() => setView(views.DEPLOYER_BOARD)}
+            // accept={() => setView(views.DEPLOYER_BOARD)}
+            accept={resolver.resolve} 
             decline={() => setView(views.DEPLOY_OR_ATTACH)}
           />
         )}
