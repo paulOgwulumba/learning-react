@@ -1,39 +1,38 @@
 "reach 0.1";
 
-// Enum value that we use to represent the current outcome of the game
-const [isOutcome, B_WINS, DRAW, A_WINS] = makeEnum(3);
+const [isOutcome, A_WINS, DRAW, B_WINS] = makeEnum(3);
 
-const winner = (cardAlice, cardBob) => {
-  if (cardAlice === cardBob) {
-    return DRAW;
-  } else if (
-    (cardAlice < 21 && cardBob < 21 && cardAlice > cardBob) ||
-    (cardAlice < 21 && cardBob > 21)
-  ) {
+const winner = (bobTotal, aliceTotal) => {
+  if (bobTotal > 21 || (aliceTotal < 22 && aliceTotal > bobTotal)) {
     return A_WINS;
-  } else return B_WINS;
+  } else {
+    if (bobTotal < 22 && (bobTotal > aliceTotal || aliceTotal > 21)) {
+      return B_WINS;
+    } else return DRAW;
+  }
 };
 
 const Player = {
   ...hasRandom,
-  dealCard: Fun([], Array(UInt, 5)),
-  seeOutcome: Fun([UInt], Null),
+  dealCards: Fun([], Tuple(UInt, Bytes(8))), // this would return an array whose first element is the sum of the cards and the second element is the first card
   informTimeout: Fun([], Null),
+  seeOutcome: Fun([UInt], Null),
+  viewOpponentCards: Fun([Bytes(8)], Null),
 };
 
 export const main = Reach.App(() => {
   const Alice = Participant("Alice", {
     ...Player,
     wager: UInt,
-    seeAliceCard: Fun([], Array(UInt, 5)),
     deadline: UInt,
-    waitingForAttacher: Fun([], Null),
+    revealCards: Fun([], Bytes(8)),
   });
+
   const Bob = Participant("Bob", {
     ...Player,
-    seeBobCard: Fun([], Array(UInt, 5)),
     acceptWager: Fun([UInt], Null),
   });
+
   init();
 
   const informTimeout = () => {
@@ -62,53 +61,63 @@ export const main = Reach.App(() => {
   commit();
 
   Alice.only(() => {
-    const _aliceCard = interact.dealCard();
-    const [_commitAlice, _saltAlice] = makeCommitment(interact, _aliceCard);
-    const commitAlice = declassify(_commitAlice);
+    const [_aliceCardsTotal, _aliceCardsVisible] = interact.dealCards();
+    const aliceCardsVisible = declassify(_aliceCardsVisible);
+    const [_aliceCommit, _aliceSalt] = makeCommitment(
+      interact,
+      _aliceCardsTotal
+    );
   });
 
-  Alice.publish(commitAlice).timeout(relativeTime(deadline), () =>
-    closeTo(Bob, informTimeout)
-  );
+  Alice.publish(aliceCardsVisible);
 
   commit();
 
-  unknowable(Bob, Alice(_aliceCard, _saltAlice));
+  Bob.interact.viewOpponentCards(aliceCardsVisible);
 
   Bob.only(() => {
-    const bobCard = declassify(interact.dealCard());
+    const [bobCardsTotal, bobCardsVisible] = declassify(interact.dealCards());
   });
 
-  Bob.publish(bobCard).timeout(relativeTime(deadline), () =>
-    closeTo(Alice, informTimeout)
+  Bob.publish(bobCardsTotal, bobCardsVisible).timeout(
+    relativeTime(deadline),
+    () => closeTo(Alice, informTimeout)
   );
 
   commit();
 
   Alice.only(() => {
-    const saltAlice = declassify(_saltAlice);
-    const aliceCard = declassify(_aliceCard);
+    const aliceCardsTotal = declassify(_aliceCardsTotal);
+    interact.viewOpponentCards(bobCardsVisible);
+    const aliceFinalCards = declassify(interact.revealCards());
   });
 
-  Alice.publish(saltAlice, aliceCard).timeout(relativeTime(deadline), () =>
-    closeTo(Bob, informTimeout)
+  Alice.publish(aliceCardsTotal, aliceFinalCards).timeout(
+    relativeTime(deadline),
+    () => closeTo(Bob, informTimeout)
   );
 
-  checkCommitment(commitAlice, saltAlice, aliceCard);
+  Bob.interact.viewOpponentCards(aliceFinalCards);
 
-  const outcome = winner(aliceCard, bobCard);
-
-  if (outcome == DRAW) {
-    transfer(wager).to(Alice);
-    transfer(wager).to(Bob);
-  } else {
-    transfer(2 * wager).to(outcome == A_WINS ? Alice : Bob);
-  }
-
-  commit();
+  const outcome = winner(bobCardsTotal, aliceCardsTotal);
 
   each([Alice, Bob], () => {
     interact.seeOutcome(outcome);
-    interact.seeCards(aliceCard, bobCard);
   });
+
+  if (outcome == A_WINS) {
+    transfer(2 * wager).to(Alice);
+  } else if (outcome == B_WINS) {
+    transfer((3 * wager) / 2).to(Bob);
+    transfer(wager / 2).to(Alice);
+  } else {
+    transfer(wager).to(Bob);
+    transfer(wager).to(Alice);
+  }
+
+  transfer(balance()).to(Alice);
+
+  commit();
+
+  exit();
 });
