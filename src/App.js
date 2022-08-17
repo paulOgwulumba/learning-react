@@ -1,4 +1,4 @@
-import * as backend from "./build/index.main.mjs";
+import * as backend from "./reach/build/index.main.mjs";
 import { loadStdlib } from "@reach-sh/stdlib";
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from "@reach-sh/stdlib";
 
@@ -15,9 +15,10 @@ import {
   DeployOrAttach,
   PasteContractInfo,
   SetWager,
-  Timeout,
   WaitForAttacher,
 } from "./views/";
+
+import { Card } from "./cardComponents/index";
 
 const reach = loadStdlib("ALGO");
 reach.setWalletFallback(
@@ -66,14 +67,18 @@ function App() {
       Alice.deadline = deadline;
       backend.Alice(contract, Alice);
       setView(views.DEPLOYING);
-      setContractInfo(JSON.stringify(await contract.getInfo(), null, 2));
+      const ctcInfo = JSON.stringify(await contract.getInfo(), null, 2);
+      setContractInfo(ctcInfo);
+      setView(views.WAIT_FOR_ATTACHER);
     },
 
     attach: (contractInfo) => {
-      const contract = account.contract(backend, JSON.parse(contractInfo));
+      const contract = account.contract(backend, contractInfo);
       backend.Bob(contract, Bob);
     },
   };
+
+  console.log(contractInfo);
 
   const Player = {
     random: () => reach.hasRandom.random(),
