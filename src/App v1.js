@@ -122,8 +122,10 @@ function App() {
 
   // randomCards generator
   const randomCards = () => {
-    let randomIndex = Math.floor(Math.random() * 13);
-    return blackJackGame["cards"][randomIndex];
+    // let randomIndex = Math.floor(Math.random() * 13);
+    let randomCard = blackJackGame["cards"][Math.floor(Math.random() * 12)];
+    let cardValue = blackJackGame.cardsMap[randomCard];
+    return randomCard;
   };
 
   //Update Score
@@ -143,14 +145,44 @@ function App() {
     }
   }
 
+  function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+  }
+
+  // AutoCard function
+  useEffect(() => {
+    for (let i = 0; i < 2; i++) {
+      setTimeout(() => {
+        if (i == 1) {
+          let card = randomCards();
+          setDeployerCard((prevCard) => [...prevCard, <Card card={card} />]);
+          updateScore(card, deployerScore, setDeployerScore);
+          setDeployerCard((prevCard) => (prevCard += card));
+        }
+      }, 3000);
+      setTimeout(() => {
+        if (i == 2) {
+          let card = randomCards();
+          setDeployerCard((prevCard) => [...prevCard, <Card card={card} />]);
+          updateScore(card, deployerScore, setDeployerScore);
+        }
+      }, 3000);
+    }
+  }, []);
   //Deployer function
   const deployHit = () => {
-    if (deployerScore <= 21 && isDrop === false) {
+    if (deployerScore <= 16 && isDrop === false) {
       let card = randomCards();
       setDeployerCard((prevCard) => [...prevCard, <Card card={card} />]);
       updateScore(card, deployerScore, setDeployerScore);
       setIsHit(true);
+      setDeployerCard((prevCard) => (prevCard += card));
     }
+    return [deployerScore, deployerCard];
   };
 
   //set deployer score logicyar
@@ -204,6 +236,19 @@ function App() {
     informTimeout: () => {
       setView(views.TIME_OUT);
     },
+    viewOpponentCards: (card) => {
+      // removeExtraCommas because we set bytes(8);
+
+      let splittedCard = card.split("");
+      let returnedCards = "";
+      // check if it is a character
+      splittedCard.forEach((char) => {
+        //check if the char in array is among accepted cards
+        if (blackJackGame.cards.indexOf(char) > -1) {
+          returnedCards += char;
+        }
+      });
+    },
   };
   const Alice = {
     ...Player,
@@ -215,6 +260,9 @@ function App() {
     },
     waitingForAttacher: () => {
       setView(views.WAIT_FOR_ATTACHER);
+    },
+    dealCards: async () => {
+      deployHit();
     },
   };
 
@@ -234,6 +282,11 @@ function App() {
     },
   };
 
+  // useEffect(()=>{
+  //     resolver.resolve(setView(views.DEPLOYER_BOARD));
+  // }, [ resolver])
+
+  const OUTCOME = ["Alice Wins!!!", "Draw !!!", "Bob Wins!!!"];
   return (
     <div className="App">
       <div className="top">
@@ -274,7 +327,8 @@ function App() {
           <AcceptWager
             wager={wager}
             standardUnit={standardUnit}
-            accept={() => setView(views.DEPLOYER_BOARD)}
+            // accept={() => setView(views.DEPLOYER_BOARD)}
+            accept={resolver.resolve} 
             decline={() => setView(views.DEPLOY_OR_ATTACH)}
           />
         )}
@@ -291,6 +345,9 @@ function App() {
       </header> */}
       <section>
         <div className="App__board">
+          {outcome !== "" && (
+            <State text={OUTCOME[outcome]} type="header_state" />
+          )}
           {player === "Attacher" && (
             <AttacherView
               blackJackGame={blackJackGame}
@@ -298,14 +355,13 @@ function App() {
             />
           )}
 
-         
-            <DeployerView
-              blackJackGame={blackJackGame}
-              deployerCard={deployerCard}
-              deployHit = {deployHit}
-            />
-
-           </div>
+          <DeployerView
+            blackJackGame={blackJackGame}
+            deployerCard={deployerCard}
+            deployHit={deployHit}
+            score={deployerScore}
+          />
+        </div>
         <div className="Button">
           {player === "Deployer" && (
             <Button text="Hit" type="Button__hit" click={deployHit} />

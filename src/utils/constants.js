@@ -1,4 +1,4 @@
-export const views = {
+const views = {
   CONNECT_ACCOUNT: "Connect account",
   DEPLOY_OR_ATTACH: "Deploy or attach",
 
@@ -6,13 +6,17 @@ export const views = {
   SET_WAGER: "Set wager",
   DEPLOYING: "Deploying",
   WAIT_FOR_ATTACHER: "Wait for attacher",
-  DEPLOYER_BOARD: "Deployer Board",
 
   //Attacher
   PASTE_CONTRACT_INFO: "Paste contract info",
+  ACCEPT_WAGER: "Accept wager",
   ATTACHING: "Attaching",
 
   //GENERIC
+  WAIT_FOR_TURN: "Wait for turn",
+  PLAY_TURN: "Play turn",
   TIME_OUT: "Timeout",
-  TEST_VIEW: "Test view",
+  SEE_WINNER: "See winner",
 };
+
+export { views };
