@@ -3,7 +3,7 @@ import { loadStdlib } from "@reach-sh/stdlib";
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from "@reach-sh/stdlib";
 
 import "./App.css";
-import { views } from "./utils/constants.js";
+import { views, GameOutcome, blackJackGame } from "./utils/constants.js";
 import { useState } from "react";
 
 //views
@@ -16,6 +16,8 @@ import {
   PasteContractInfo,
   SetWager,
   WaitForAttacher,
+  GameOutcomeView,
+  GamePlayView
 } from "./views/";
 
 import { Card } from "./cardComponents/index";
@@ -27,12 +29,19 @@ reach.setWalletFallback(
 const { standardUnit } = reach;
 
 function App() {
-  const [view, setView] = useState(views.CONNECT_ACCOUNT);
+  //const [view, setView] = useState(views.CONNECT_ACCOUNT);
+  const [view, setView] = useState(views.GAME_PLAY);
+
   const [account, setAccount] = useState({});
   const [contractInfo, setContractInfo] = useState("");
   const [isAlice, setIsAlice] = useState(true);
   const [wager, setWager] = useState();
   const [resolver, setResolver] = useState();
+  const [gameOutcome, setGameOutcome] = useState(GameOutcome.UNDECIDED);
+  const [opponentCards, setOpponentCards] = useState([]);
+  const [myCards, setMyCards] = useState('');
+  const [hasSeenSomeOpponentCards, setHasSeenSomeOpponentCards] = useState(false);
+  const [canViewAllOpponentCards, setCanViewAllOpponentCards] = useState(false);
 
   const reachFunctions = {
     connect: async (secret, mnemonic = false) => {
@@ -84,7 +93,61 @@ function App() {
     random: () => reach.hasRandom.random(),
     informTimeout: () => {
       setView(views.TIME_OUT);
+      alert("Time out!!!!");
+      window.location.reload();
     },
+
+    dealCards: async () => {
+      setView(views.GAME_PLAY);
+
+      return await new Promise((resolve) => {
+        setResolver({
+          resolve
+        })
+      })
+    },
+
+    seeOutcome: async (value) => {
+      const outcome = parseInt(value);
+      console.log("The outcome is", outcome);
+
+      if (outcome == 0) {
+        setGameOutcome(isAlice? GameOutcome.WINNER : GameOutcome.LOSS)
+      }
+      else if (outcome == 1) {
+        setGameOutcome(isAlice? GameOutcome.LOSS : GameOutcome.WINNER)
+      }
+      else {
+        setGameOutcome(GameOutcome.DRAW)
+      }
+    },
+
+    viewOpponentCards: async (cards) => {
+      let splittedCard = cards.split("");
+      let returnedCards = "";
+
+      // check if it is a character
+      splittedCard.forEach((char) => {
+        //check if the char in array is among accepted cards
+        if (blackJackGame.cards.indexOf(char) > -1) {
+          returnedCards += char;
+        }
+      });
+
+      setOpponentCards(returnedCards.split(''));
+
+      if (isAlice) {
+        setCanViewAllOpponentCards(true);
+      }
+      else {
+        if (hasSeenSomeOpponentCards) {
+          setCanViewAllOpponentCards(true);
+        }
+        else {
+          setHasSeenSomeOpponentCards(true);
+        }
+      }
+    }
   };
 
   const Alice = {
@@ -102,6 +165,10 @@ function App() {
     waitingForAttacher: () => {
       setView(views.WAIT_FOR_ATTACHER);
     },
+
+    revealCards: () => {
+      return myCards
+    }
   };
 
   const Bob = {
@@ -157,6 +224,10 @@ function App() {
       )}
 
       {view === views.ATTACHING && <Attaching />}
+
+      { view === views.SEE_WINNER && <GameOutcomeView outcome={gameOutcome}/> }
+
+      { view === views.GAME_PLAY && <GamePlayView /> }
     </div>
   );
 }

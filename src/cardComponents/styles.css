@@ -5,12 +5,23 @@
   flex-wrap: wrap;
 }
 
+.card-holder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
 .card-container {
   background: #fff;
   width: 14rem;
-  height: 20rem;
+  /* min-height: 20rem; */
+  height: 30rem;
   border-radius: 7px;
   margin: 10px;
+  border: 1px solid #dddada;
+  box-shadow: 2px 4px #ddd9d9;
 }
 .card-content__inner,
 .card-content-inner__border-top,
@@ -20,6 +31,7 @@
 .card-content-inner__border-top,
 .card-content-inner__border-bottom {
   height: 10%;
+  height: 15rem;
 }
 .card-content__inner {
   display: flex;

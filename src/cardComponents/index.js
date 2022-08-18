@@ -1,5 +1,5 @@
 import "./styles.css";
-import CardsWrapper from "./components/CardsWrapper";
+import CardsWrapper from "./CardsWrapper";
 
 function Card() {
   return (

@@ -1,9 +1,10 @@
-import Loader from "../components/Loader";
+//import Loader from "../components/Loader";
 
 export function Deploying() {
   return (
     <div>
-      <Loader>Deploying</Loader>
+      {/* <Loader>Deploying</Loader> */}
+      <p>Deploying</p>
     </div>
   );
 }
