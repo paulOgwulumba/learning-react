@@ -1,0 +1,65 @@
+.section{
+  margin: 50px 0px;
+}
+
+.button{
+  height: 40px;
+  padding: 10px;
+  margin: 5px 0px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 1s;
+  font-size: 15px;
+  width: fit-content;
+  align-self: center;
+}
+
+.button:hover{
+  background-color: rgb(179, 179, 133);
+  transform: scale(110%);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.textarea{
+  width: 500px;
+  height: 300px;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.player-card-holder {
+  flex: 1;
+}
+
+.player-info-wrapper {
+  margin-bottom: 20px;
+  background-color: black;
+  display: flex;
+  padding: 10px;
+  flex-direction: row;
+  min-height: calc(30rem + 20px);
+}
+
+.player-info {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  padding-left: 40px;
+  min-width: 200px;
+  flex-direction: column;
+  position: relative;
+}
+
+.player-info p {
+  color: #fff;
+  font-size: larger;
+  position: absolute;
+  top: 40px;
+  left: 40px;
+}

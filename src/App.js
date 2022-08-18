@@ -29,14 +29,14 @@ reach.setWalletFallback(
 const { standardUnit } = reach;
 
 function App() {
-  //const [view, setView] = useState(views.CONNECT_ACCOUNT);
-  const [view, setView] = useState(views.GAME_PLAY);
+  const [view, setView] = useState(views.CONNECT_ACCOUNT);
+  // const [view, setView] = useState(views.GAME_PLAY);
 
   const [account, setAccount] = useState({});
   const [contractInfo, setContractInfo] = useState("");
   const [isAlice, setIsAlice] = useState(true);
   const [wager, setWager] = useState();
-  const [resolver, setResolver] = useState();
+  const [resolver, setResolver] = useState({ resolve: () => null });
   const [gameOutcome, setGameOutcome] = useState(GameOutcome.UNDECIDED);
   const [opponentCards, setOpponentCards] = useState([]);
   const [myCards, setMyCards] = useState('');
@@ -87,8 +87,6 @@ function App() {
     },
   };
 
-  console.log(contractInfo);
-
   const Player = {
     random: () => reach.hasRandom.random(),
     informTimeout: () => {
@@ -111,15 +109,17 @@ function App() {
       const outcome = parseInt(value);
       console.log("The outcome is", outcome);
 
-      if (outcome == 0) {
+      if (outcome === 0) {
         setGameOutcome(isAlice? GameOutcome.WINNER : GameOutcome.LOSS)
       }
-      else if (outcome == 1) {
-        setGameOutcome(isAlice? GameOutcome.LOSS : GameOutcome.WINNER)
-      }
-      else {
+      else if (outcome === 1) {
         setGameOutcome(GameOutcome.DRAW)
       }
+      else {
+        setGameOutcome(isAlice? GameOutcome.LOSS : GameOutcome.WINNER)
+      }
+
+      setView(views.SEE_WINNER);
     },
 
     viewOpponentCards: async (cards) => {
@@ -188,6 +188,10 @@ function App() {
     },
   };
 
+  const handleCardsChange = (cards) => {
+    setMyCards(cards);
+  }
+
   return (
     <div className="App">
       <div className="topnav">
@@ -227,7 +231,15 @@ function App() {
 
       { view === views.SEE_WINNER && <GameOutcomeView outcome={gameOutcome}/> }
 
-      { view === views.GAME_PLAY && <GamePlayView /> }
+      { view === views.GAME_PLAY && 
+        <GamePlayView 
+          onCardsChange = { handleCardsChange }
+          opponentCards = { opponentCards }
+          isAlice = { isAlice }
+          canViewAllOpponentCards = { canViewAllOpponentCards }
+          submitCards = { resolver.resolve }
+        /> 
+      }
     </div>
   );
 }

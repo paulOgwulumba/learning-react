@@ -22,7 +22,20 @@
   margin: 10px;
   border: 1px solid #dddada;
   box-shadow: 2px 4px #ddd9d9;
+  position: relative;
 }
+
+.card-container .flipped-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: green;
+  border-radius: 7px;
+  border: 1px solid #dddada;
+}
+
 .card-content__inner,
 .card-content-inner__border-top,
 .card-content-inner__border-bottom {
